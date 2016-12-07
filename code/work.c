@@ -1,12 +1,9 @@
-#define _GNU_SOURCE
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
 #include <pthread.h>        // threading
 #include <sys/types.h>      // pid
 #include <unistd.h>         // pid
-#include <sched.h>          // scheduling
 #include <linux/sched.h>    // schduling policies
 
 #define LENGTH 524288
