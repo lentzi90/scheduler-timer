@@ -24,6 +24,7 @@ void *work(void *data);
 void run_workers();
 void print_schduler(pid_t pid);
 void initialize_grandi(WorkLoad *wl, int start, int stop);
+long calculate_sum(WorkLoad *wl, int start, int stop);
 
 int main(int argc, char *argv[]) {
 
@@ -67,14 +68,24 @@ void *work(void *index) {
     printf("Working...\n");
     int start = *(int *)index;
     int stop = start + wl->data_length / wl->nworkers;
+    initialize_grandi(wl, start, stop);
 
+    long sum = 0;
     int times = 10000;
+    //int times = 1;
     for (int k = 0; k < times; k++) {
-        initialize_grandi(wl, start, stop);
+        sum = sum + calculate_sum(wl, start, stop);
         if (k == times/2) {
             printf("Half way there...\n");
         }
     }
+
+    long *sump = malloc(sizeof(long));
+    if (!sump) {
+        perror("malloc");
+    }
+    *sump = sum;
+    return (void *)sump;
 }
 
 /**
@@ -82,6 +93,9 @@ void *work(void *index) {
  */
 void run_workers() {
     int num = wl->nworkers;
+    long total_sum = 0;
+    void *tmp_sum = 0;
+
     // create threads
     pthread_t threads[num];
     int startindex[num];
@@ -94,12 +108,19 @@ void run_workers() {
         }
     }
     startindex[i] = i * len / num;
-    work((void *)&startindex[i]);
+    tmp_sum = work((void *)&startindex[i]);
+
+    total_sum += *(long *)tmp_sum;
+    free(tmp_sum);
 
     // Join the threads
     for (int i = 0; i < num-1; i++) {
-        pthread_join(threads[i], NULL);
+        pthread_join(threads[i], &tmp_sum);
+        total_sum += *(long *)tmp_sum;
+        free(tmp_sum);
     }
+
+    printf("Sum is %d\n", total_sum);
 }
 
 /**
@@ -142,6 +163,15 @@ void initialize_grandi(WorkLoad *wl, int start, int stop) {
         } else {
             wl->data[i] = -1;
         }
-
     }
+}
+
+
+long calculate_sum(WorkLoad *wl, int start, int stop) {
+    long sum = 0;
+
+    for (int i = start; i < stop; i++) {
+        sum = sum + wl->data[i];
+    }
+    return sum;
 }
