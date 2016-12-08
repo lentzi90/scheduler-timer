@@ -6,22 +6,27 @@
 #include <unistd.h>         // pid
 #include <linux/sched.h>    // schduling policies
 
-#define LENGTH 524288
+//#define LENGTH 16777216   // 2^24
+//#define LENGTH 1024
 #define NUM_WORKERS 4
 
 typedef struct work_load {
     int nworkers;
-    int data_length;
+    long data_length;
     long *data;
 } WorkLoad;
 
-WorkLoad *wl;
+typedef struct work_packet {
+    long index;
+    long length;
+    long result;
+} Packet;
 
 void *work(void *data);
-void run_workers();
+void run_workers(WorkLoad *wl);
 void print_schduler(pid_t pid);
-void initialize_grandi(WorkLoad *wl, int start, int stop);
-long calculate_sum(WorkLoad *wl, int start, int stop);
+int get_grandi(int index);
+long calculate_sum(long index, long length);
 
 int main(int argc, char *argv[]) {
 
@@ -44,15 +49,19 @@ int main(int argc, char *argv[]) {
 
 
     // Allocate memory for work load
+    WorkLoad *wl;
     wl = malloc(sizeof(WorkLoad));
     // Initialize work load
     wl->nworkers = NUM_WORKERS;
-    wl->data_length = LENGTH;
-    long data[LENGTH];
-    wl->data = data;
+    // wl->data_length = 1073741824; // 2^30
+    wl->data_length = 2147483400;
+    // long data[length];
+    // wl->data = data;
 
-    run_workers();
+    printf("Starting workers...\n");
+    run_workers(wl);
 
+    free(wl);
     printf("Done\n");
 }
 
@@ -61,60 +70,55 @@ int main(int argc, char *argv[]) {
  * @param  index index to start at
  * @return       nothing
  */
-void *work(void *index) {
+void *work(void *packet) {
     printf("Working...\n");
-    int start = *(int *)index;
-    int stop = start + wl->data_length / wl->nworkers;
-    initialize_grandi(wl, start, stop);
+    Packet *pkt = (Packet *)packet;
 
     long sum = 0;
-    int times = 10000;
-    //int times = 1;
-    for (int k = 0; k < times; k++) {
-        sum = sum + calculate_sum(wl, start, stop);
-        if (k == times/2) {
-            printf("Half way there...\n");
-        }
-    }
 
-    long *sump = malloc(sizeof(long));
-    if (!sump) {
-        perror("malloc");
-    }
-    *sump = sum;
-    return (void *)sump;
+    sum = sum + calculate_sum(pkt->index, pkt->length);
 }
 
 /**
  * run_workers - start work threads and wait for them to finish
  */
-void run_workers() {
+void run_workers(WorkLoad *wl) {
     int num = wl->nworkers;
     long total_sum = 0;
-    void *tmp_sum = 0;
+
+    Packet *pkt[num];
+    for (int i = 0; i < num; i++) {
+        pkt[i] = malloc(sizeof(Packet));
+        if (!pkt[i]) {
+            perror("malloc");
+        }
+        pkt[i]->result = 0;
+    }
 
     // create threads
     pthread_t threads[num];
-    int startindex[num];
-    int len = LENGTH;
+    long len = wl->data_length;
+    long p_len = len / num;
     int i;
     for (i = 0; i < num-1; i++) {
-        startindex[i] = i * len / num;
-        if (pthread_create(&threads[i], NULL, work, (void *)&startindex[i]) != 0) {
+        pkt[i]->index = i * len / num;
+        pkt[i]->length = p_len;
+        if (pthread_create(&threads[i], NULL, work, (void *)pkt[i]) != 0) {
             perror("Could not create thread");
         }
     }
-    startindex[i] = i * len / num;
-    tmp_sum = work((void *)&startindex[i]);
+    pkt[i]->index = i * len / num;
+    pkt[i]->length = p_len;
+    work((void *)pkt[i]);
 
-    total_sum += *(long *)tmp_sum;
-    free(tmp_sum);
+    total_sum += pkt[i]->result;
+    free(pkt[i]);
 
     // Join the threads
     for (int i = 0; i < num-1; i++) {
-        pthread_join(threads[i], &tmp_sum);
-        total_sum += *(long *)tmp_sum;
-        free(tmp_sum);
+        pthread_join(threads[i], NULL);
+        total_sum += pkt[i]->result;
+        free(pkt[i]);
     }
 
     printf("Sum is %d\n", total_sum);
@@ -153,22 +157,30 @@ void print_schduler(pid_t pid) {
     printf("Scheduler: %s\n", schedlr_name);
 }
 
-void initialize_grandi(WorkLoad *wl, int start, int stop) {
-    for (int i = start; i < stop; i++) {
-        if (i % 2 == 0) {
-            wl->data[i] = 1;
-        } else {
-            wl->data[i] = -1;
-        }
+// int get_next_grandi(int prev) {
+//     if (prev == 1) {
+//         return -1;
+//     } else if (prev == -1) {
+//         return 1;
+//     } else {
+//         return 1;
+//     }
+// }
+
+int get_grandi(int index) {
+    if (index % 2 == 0) {
+        return 1;
+    } else {
+        return -1;
     }
 }
 
 
-long calculate_sum(WorkLoad *wl, int start, int stop) {
+long calculate_sum(long index, long length) {
     long sum = 0;
 
-    for (int i = start; i < stop; i++) {
-        sum = sum + wl->data[i];
+    for (int i = index; i < index+length; i++) {
+        sum = sum + get_grandi(i);
     }
     return sum;
 }
