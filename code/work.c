@@ -6,14 +6,12 @@
 #include <unistd.h>         // pid
 #include <linux/sched.h>    // schduling policies
 
-//#define LENGTH 16777216   // 2^24
-//#define LENGTH 1024
 #define NUM_WORKERS 4
+#define LENGTH 2147483400
 
 typedef struct work_load {
     int nworkers;
     long data_length;
-    long *data;
 } WorkLoad;
 
 typedef struct work_packet {
@@ -22,47 +20,42 @@ typedef struct work_packet {
     long result;
 } Packet;
 
+WorkLoad *get_work_load();
 void *work(void *data);
-void run_workers(WorkLoad *wl);
-void print_schduler(pid_t pid);
 int get_grandi(int index);
 long calculate_sum(long index, long length);
+void run_workers(WorkLoad *wl);
+void print_schduler();
+void set_scheduler(int policy);
+
 
 int main(int argc, char *argv[]) {
 
-    // Get and print pid
-    pid_t pid = getpid();
-    printf("pid: %d\n", pid);
-
     // Set scheduler
-    struct sched_param param;
-    param.sched_priority = 0;
-    //int policy = SCHED_BATCH;
-    //int policy = SCHED_IDLE;
-
-    // if (sched_setscheduler(pid, policy, &param) != 0) {
-    //     perror("Set scheduler");
-    // }
+    // int policy = SCHED_BATCH;
+    int policy = SCHED_IDLE;
+    set_scheduler(policy);
 
     // Check and print scheduler
-    print_schduler(pid);
+    print_schduler();
 
-
-    // Allocate memory for work load
-    WorkLoad *wl;
-    wl = malloc(sizeof(WorkLoad));
-    // Initialize work load
-    wl->nworkers = NUM_WORKERS;
-    // wl->data_length = 1073741824; // 2^30
-    wl->data_length = 2147483400;
-    // long data[length];
-    // wl->data = data;
+    WorkLoad *wl = get_work_load();
 
     printf("Starting workers...\n");
     run_workers(wl);
 
     free(wl);
     printf("Done\n");
+}
+
+WorkLoad *get_work_load() {
+    WorkLoad *wl;
+    // Allocate memory for work load
+    wl = malloc(sizeof(WorkLoad));
+    // Initialize work load
+    wl->nworkers = NUM_WORKERS;
+    // wl->data_length = 1073741824; // 2^30
+    wl->data_length = LENGTH;
 }
 
 /**
@@ -77,6 +70,24 @@ void *work(void *packet) {
     long sum = 0;
 
     sum = sum + calculate_sum(pkt->index, pkt->length);
+}
+
+int get_grandi(int index) {
+    if (index % 2 == 0) {
+        return 1;
+    } else {
+        return -1;
+    }
+}
+
+
+long calculate_sum(long index, long length) {
+    long sum = 0;
+
+    for (int i = index; i < index+length; i++) {
+        sum = sum + get_grandi(i);
+    }
+    return sum;
 }
 
 /**
@@ -128,7 +139,8 @@ void run_workers(WorkLoad *wl) {
  * print_schduler - print the current scheduler
  * @param  pid  the pid of the process
  */
-void print_schduler(pid_t pid) {
+void print_schduler() {
+    pid_t pid = getpid();
     int schedlr = sched_getscheduler(pid);
 
     char *schedlr_name;
@@ -157,30 +169,12 @@ void print_schduler(pid_t pid) {
     printf("Scheduler: %s\n", schedlr_name);
 }
 
-// int get_next_grandi(int prev) {
-//     if (prev == 1) {
-//         return -1;
-//     } else if (prev == -1) {
-//         return 1;
-//     } else {
-//         return 1;
-//     }
-// }
+void set_scheduler(int policy) {
+    struct sched_param param;
+    pid_t pid = getpid();
+    param.sched_priority = 0;
 
-int get_grandi(int index) {
-    if (index % 2 == 0) {
-        return 1;
-    } else {
-        return -1;
+    if (sched_setscheduler(pid, policy, &param) != 0) {
+        perror("Set scheduler");
     }
-}
-
-
-long calculate_sum(long index, long length) {
-    long sum = 0;
-
-    for (int i = index; i < index+length; i++) {
-        sum = sum + get_grandi(i);
-    }
-    return sum;
 }
