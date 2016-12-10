@@ -3,15 +3,17 @@
 #include <errno.h>
 #include <pthread.h>        // threading
 #include <sys/types.h>      // pid
-#include <unistd.h>         // pid
+#include <unistd.h>         // pid, getopt
 #include <linux/sched.h>    // schduling policies
 
 #define NUM_WORKERS 4
-#define LENGTH 2147483400
+//#define LENGTH 2147483400
+#define LENGTH 214748340
 
 typedef struct work_load {
     int nworkers;
     long data_length;
+    char scheduler;
 } WorkLoad;
 
 typedef struct work_packet {
@@ -26,20 +28,25 @@ int get_grandi(int index);
 long calculate_sum(long index, long length);
 void run_workers(WorkLoad *wl);
 void print_schduler();
-void set_scheduler(int policy);
+void set_scheduler(WorkLoad *wl);
+void set_settings(WorkLoad *wl, int argc, char *argv[]);
 
+int num_policies = 6;
+char c_policies[] = {'n', 'b', 'i', 'f', 'r', 'd'};
+char *str_policies[] = {"Normal", "Batch", "Idle", "FIFO", "RR", "Deadline"};
+int policies[] = {SCHED_NORMAL, SCHED_BATCH, SCHED_IDLE, SCHED_FIFO, SCHED_RR, SCHED_DEADLINE};
 
 int main(int argc, char *argv[]) {
 
-    // Set scheduler
-    // int policy = SCHED_BATCH;
-    int policy = SCHED_IDLE;
-    set_scheduler(policy);
-
-    // Check and print scheduler
-    print_schduler();
-
     WorkLoad *wl = get_work_load();
+
+    set_settings(wl, argc, argv);
+
+    // Set scheduler
+    set_scheduler(wl);
+
+    // Print scheduler to make sure it is set coorectly
+    print_schduler();
 
     printf("Starting workers...\n");
     run_workers(wl);
@@ -59,12 +66,11 @@ WorkLoad *get_work_load() {
 }
 
 /**
- * work - a silly attempt to calculate the limit of Grandi's series
- * @param  index index to start at
- * @return       nothing
- */
+* work - a silly attempt to calculate the limit of Grandi's series
+* @param  index index to start at
+* @return       nothing
+*/
 void *work(void *packet) {
-    printf("Working...\n");
     Packet *pkt = (Packet *)packet;
 
     long sum = 0;
@@ -91,8 +97,8 @@ long calculate_sum(long index, long length) {
 }
 
 /**
- * run_workers - start work threads and wait for them to finish
- */
+* run_workers - start work threads and wait for them to finish
+*/
 void run_workers(WorkLoad *wl) {
     int num = wl->nworkers;
     long total_sum = 0;
@@ -118,6 +124,7 @@ void run_workers(WorkLoad *wl) {
             perror("Could not create thread");
         }
     }
+    printf("Working...\n");
     pkt[i]->index = i * len / num;
     pkt[i]->length = p_len;
     work((void *)pkt[i]);
@@ -136,9 +143,9 @@ void run_workers(WorkLoad *wl) {
 }
 
 /**
- * print_schduler - print the current scheduler
- * @param  pid  the pid of the process
- */
+* print_schduler - print the current scheduler
+* @param  pid  the pid of the process
+*/
 void print_schduler() {
     pid_t pid = getpid();
     int schedlr = sched_getscheduler(pid);
@@ -146,35 +153,97 @@ void print_schduler() {
     char *schedlr_name;
     switch (schedlr) {
         case SCHED_NORMAL:
-            schedlr_name = "Normal/Other";
-            break;
+        schedlr_name = "Normal/Other";
+        break;
         case SCHED_BATCH:
-            schedlr_name = "Batch";
-            break;
+        schedlr_name = "Batch";
+        break;
         case SCHED_IDLE:
-            schedlr_name = "Idle";
-            break;
+        schedlr_name = "Idle";
+        break;
         case SCHED_FIFO:
-            schedlr_name = "FIFO";
-            break;
+        schedlr_name = "FIFO";
+        break;
         case SCHED_RR:
-            schedlr_name = "RR";
-            break;
+        schedlr_name = "RR";
+        break;
         case SCHED_DEADLINE:
-            schedlr_name = "Deadline";
-            break;
+        schedlr_name = "Deadline";
+        break;
         default:
-            schedlr_name = "Unknown";
+        schedlr_name = "Unknown";
     }
     printf("Scheduler: %s\n", schedlr_name);
 }
 
-void set_scheduler(int policy) {
+void set_scheduler(WorkLoad *wl) {
     struct sched_param param;
     pid_t pid = getpid();
     param.sched_priority = 0;
+    int policy = SCHED_NORMAL;
+
+    for (int i = 0; i < num_policies; i++) {
+        if (wl->scheduler == c_policies[i]) {
+            policy = policies[i];
+            break;
+        }
+    }
 
     if (sched_setscheduler(pid, policy, &param) != 0) {
         perror("Set scheduler");
+    }
+}
+
+void set_settings(WorkLoad *wl, int argc, char *argv[]) {
+    // Two possible options: j(obs) and p(olicy)
+    char *optstr = "j:p:";
+    int opt;
+    char policy = 'n';
+    int num_threads = 1;
+    int policy_ok = 0;
+    int threads_ok = 0;
+
+    // Parse flags
+    while ((opt = getopt(argc, argv, optstr)) != -1) {
+        char *end;
+        switch (opt) {
+            case 'p':
+            policy = *optarg;
+            break;
+            case 'j':
+            errno = 0;
+            num_threads = strtol(optarg, &end, 10);
+            if (errno != 0) {
+                perror("strtol");
+            }
+            break;
+            default:
+            printf("Option %c not supported\n", opt);
+        }
+    }
+
+    // Check the parsed options
+    for (int i = 0; i < num_policies; i++) {
+        if (policy == c_policies[i]) {
+            policy_ok = 1;
+            break;
+        }
+    }
+
+    if (num_threads <= 100 && num_threads > 0) {
+        threads_ok = 1;
+    }
+
+    // Set values if they are safe, or set defaults
+    if (policy_ok) {
+        wl->scheduler = policy;
+    } else {
+        wl->scheduler = 'n';
+    }
+
+    if (threads_ok) {
+        wl->nworkers = num_threads;
+    } else {
+        wl->nworkers = 1;
     }
 }
