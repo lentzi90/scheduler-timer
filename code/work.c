@@ -1,3 +1,22 @@
+/**
+ * work.c
+ *
+ * Just a silly "do something that takes time" program.
+ * It tries to calculate the sum of Grandi's series (1-1+1-1+1-1...).
+ * As long as the length it is summing over is even the sum should always be 0.
+ *
+ * Author: Lennart Jern (ens16ljn)
+ *
+ * Call sequence: work [-p <policy>] [-j <number of jobs>]
+ * The policy is given by a single char according to this:
+ * n - Normal
+ * b - Batch
+ * i - Idle
+ * f - FIFO
+ * r - RR
+ * d - Deadline
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
@@ -6,7 +25,7 @@
 #include <unistd.h>         // pid, getopt
 #include <linux/sched.h>    // schduling policies
 
-#define NUM_WORKERS 4
+// Length of sequence to sum
 //#define LENGTH 2147483400
 #define LENGTH 214748340
 
@@ -55,20 +74,25 @@ int main(int argc, char *argv[]) {
     printf("Done\n");
 }
 
+/**
+ * get_work_load - initialize the work load and return a pointer to it
+ * @return  pointer to allocated memory
+ */
 WorkLoad *get_work_load() {
     WorkLoad *wl;
     // Allocate memory for work load
     wl = malloc(sizeof(WorkLoad));
     // Initialize work load
-    wl->nworkers = NUM_WORKERS;
+    wl->nworkers = 1;
     // wl->data_length = 1073741824; // 2^30
     wl->data_length = LENGTH;
+    return wl;
 }
 
 /**
 * work - a silly attempt to calculate the limit of Grandi's series
-* @param  index index to start at
-* @return       nothing
+* @param packet   the part of the work load to work on
+* @return         nothing
 */
 void *work(void *packet) {
     Packet *pkt = (Packet *)packet;
@@ -78,6 +102,11 @@ void *work(void *packet) {
     sum = sum + calculate_sum(pkt->index, pkt->length);
 }
 
+/**
+ * get_grandi - calculate the i:th number of Grandi's series
+ * @param  index    index of the number you want to know
+ * @return          1 if index is even, -1 otherwise
+ */
 int get_grandi(int index) {
     if (index % 2 == 0) {
         return 1;
@@ -86,7 +115,12 @@ int get_grandi(int index) {
     }
 }
 
-
+/**
+ * calculate_sum - sum Grandi's series from index over a given length
+ * @param  index    index to start from
+ * @param  length   how many numbers to sum over
+ * @return          the sum
+ */
 long calculate_sum(long index, long length) {
     long sum = 0;
 
@@ -176,6 +210,10 @@ void print_schduler() {
     printf("Scheduler: %s\n", schedlr_name);
 }
 
+/**
+ * set_scheduler - update scheduler to reflect the given WorkLoad
+ * @param wl    the work load
+ */
 void set_scheduler(WorkLoad *wl) {
     struct sched_param param;
     pid_t pid = getpid();
@@ -194,6 +232,12 @@ void set_scheduler(WorkLoad *wl) {
     }
 }
 
+/**
+ * set_settings - parse arguments and set the settings for the work load
+ * @param wl    the work load to update
+ * @param argc  argument cound
+ * @param argv  array of arguments
+ */
 void set_settings(WorkLoad *wl, int argc, char *argv[]) {
     // Two possible options: j(obs) and p(olicy)
     char *optstr = "j:p:";
