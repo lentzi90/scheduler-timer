@@ -60,167 +60,232 @@
 
 \section{Introduction}
 
+The Linux kernel provides a number of different scheduling policies that can be used to fine tune the performance of certain applications.
+In this report, five different schedulers are evaluated using an artificial, CPU intensive, work load.
+Three of the tested schedulers are ``normal'', while the last two are ``real-time'' schedulers, meaning that they provide higher priority for their processes than the normal ones do.
+
+The work load consists of a simple program, called \texttt{work}, that sums over a part of Grandi's series\footnote{\url{https://en.wikipedia.org/wiki/Grandi's_series}} ($1-1+1-1+\dots$), using a specified number of threads.
+Since the task is easy to parallelize, only require minimal memory access and no disk access, it should be comparable to CPU intense tasks like compression and matrix calculations.
+
+\section{Implementation (Method?)}
+
+A Bash script (\texttt{timer.sh}) was used to collect data by timing the work load 10 times for each scheduler, for thread counts ranging from 1 to 10.
+See code listing \ref{timer} for the code.
+The data was then processed by a simple Python program in order to calculate the median, minimum and maximum run time for each scheduler and thread count.
+It should be noted here that the real-time schedulers were run with maximum priority.
+The other schedulers does not accept any priority settings.
+
+All tests were run on my personal computer with the specifications seen in table \ref{spec}.
+
+% Versions of relevant packages, makefile
+% Pandas, bash, python, gcc
+
+\begin{table}[h]
+	\centering
+	\begin{tabular}{ll}
+		Component & Specification \\
+		\hline
+		OS: & Fedora 25 \\
+		Kernel: & Linux 4.8.12-300.fc25.x86\_64 \\
+		CPU: & Intel Core i5-2500K CPU @ 3.7GHz \\
+		RAM: & 7965MiB
+	\end{tabular}
+	\caption{Test system specification}
+	\label{spec}
+\end{table}
 
 
-\section{Implementation}
+
+\section{Results}
+
+An immediate inspection of the timing data does not reveal any significant differences between the schedulers, not even between the normal and real-time ones.
+The median run times can be seen in figure \ref{median} for the normal schedulers and in figure \ref{median-real} for the real-time schedulers.
+Similarly, the maximum and minimum run times for the normal, batch and idle schedulers can be seen in figures \ref{max} and \ref{min} respectively, while the real-time equivalents appears in figures \ref{max-real} and \ref{min-real}.
+
+It is more interesting to compare the range of response times between the schedulers (fig. \ref{range}).
+This reveals a clear difference between the real-time and normal schedulers, where the real-time ones are clearly more predictable for two or more threads.
+
+The raw data collected can be found in appendix \ref{raw}.
+
+\begin{figure}
+	\centering
+	\begin{subfigure}[t]{0.8\textwidth}
+		\begin{tikzpicture}
+		\begin{axis}[
+		ymin=0,
+		xlabel=Number of threads,
+		ylabel=Time (s),
+		legend cell align=left,
+		]
+		\addplot table [x=Threads, y=Normal, col sep=comma] {data/medians.csv};
+		\addplot table [x=Threads, y=Batch, col sep=comma] {data/medians.csv};
+		\addplot table [x=Threads, y=Idle, col sep=comma] {data/medians.csv};
+		\legend{Normal,Batch,Idle}
+		\end{axis}
+		\end{tikzpicture}
+		\caption{Median time}
+		\label{median}
+	\end{subfigure}
+	
+	\begin{subfigure}[t]{0.8\textwidth}
+		\begin{tikzpicture}
+		\begin{axis}[
+		ymin=0,
+		xlabel=Number of threads,
+		ylabel=Time (s),
+		legend cell align=left,
+		]
+		\addplot table [x=Threads, y=FIFO, col sep=comma] {data/medians.csv};
+		\addplot table [x=Threads, y=Round Robin, col sep=comma] {data/medians.csv};
+		\legend{FIFO,Round Robin}
+		\end{axis}
+		\end{tikzpicture}
+		\caption{Median time for real time schedulers.}
+		\label{median-real}
+	\end{subfigure}
+	\caption{The median time required to finish the task.}
+\end{figure}
+
+\begin{figure}
+	\centering
+	\begin{subfigure}[t]{0.8\textwidth}
+		\begin{tikzpicture}
+		\begin{axis}[
+		ymin=0,
+		xlabel=Number of threads,
+		ylabel=Time (s)
+		]
+		\addplot table [x=Threads, y=Normal, col sep=comma] {data/max.csv};
+		\addplot table [x=Threads, y=Batch, col sep=comma] {data/max.csv};
+		\addplot table [x=Threads, y=Idle, col sep=comma] {data/max.csv};
+		\legend{Normal,Batch,Idle}
+		\end{axis}
+		\end{tikzpicture}
+		\caption{Maximum time}
+		\label{max}
+	\end{subfigure}
+	
+	\begin{subfigure}[t]{0.8\textwidth}
+		\begin{tikzpicture}
+		\begin{axis}[
+		ymin=0,
+		xlabel=Number of threads,
+		ylabel=Time (s)
+		]
+		\addplot table [x=Threads, y=FIFO, col sep=comma] {data/max.csv};
+		\addplot table [x=Threads, y=Round Robin, col sep=comma] {data/max.csv};
+		\legend{FIFO,Round Robin}
+		\end{axis}
+		\end{tikzpicture}
+		\caption{Maximum time for real time schedulers.}
+		\label{max-real}
+	\end{subfigure}
+	\caption{The maximum run time required to complete the task.}
+\end{figure}
 
 
 
-\section{Testing}
+\begin{figure}
+	\centering
+	\begin{subfigure}[t]{0.8\textwidth}
+		\begin{tikzpicture}
+		\begin{axis}[
+		ymin=0,
+		xlabel=Number of threads,
+		ylabel=Time (s)
+		]
+		\addplot table [x=Threads, y=Normal, col sep=comma] {data/min.csv};
+		\addplot table [x=Threads, y=Batch, col sep=comma] {data/min.csv};
+		\addplot table [x=Threads, y=Idle, col sep=comma] {data/min.csv};
+		\legend{Normal,Batch,Idle}
+		\end{axis}
+		\end{tikzpicture}
+		\caption{Minimum time}
+		\label{min}
+	\end{subfigure}
+	
+	\begin{subfigure}[t]{0.8\textwidth}
+		\begin{tikzpicture}
+		\begin{axis}[
+		ymin=0,
+		xlabel=Number of threads,
+		ylabel=Time (s)
+		]
+		\addplot table [x=Threads, y=FIFO, col sep=comma] {data/min.csv};
+		\addplot table [x=Threads, y=Round Robin, col sep=comma] {data/min.csv};
+		\legend{FIFO,Round Robin}
+		\end{axis}
+		\end{tikzpicture}
+		\caption{Minimum time for real time schedulers.}
+		\label{min-real}
+	\end{subfigure}
+	\caption{The minimum run time required to complete the task.}
+\end{figure}
+
+
+\begin{figure}
+	\centering
+	\begin{subfigure}[t]{0.8\textwidth}
+		\begin{tikzpicture}
+		\begin{axis}[
+		ymin=0,
+		xlabel=Number of threads,
+		ylabel=Time (s)
+		]
+		\addplot table [x=Threads, y=Normal, col sep=comma] {data/spread.csv};
+		\addplot table [x=Threads, y=Batch, col sep=comma] {data/spread.csv};
+		\addplot table [x=Threads, y=Idle, col sep=comma] {data/spread.csv};
+		\legend{Normal,Batch,Idle}
+		\end{axis}
+		\end{tikzpicture}
+		\caption{Spread}
+		\label{spread}
+	\end{subfigure}
+	
+	\begin{subfigure}[t]{0.8\textwidth}
+		\begin{tikzpicture}
+		\begin{axis}[
+		ymin=0,
+		xlabel=Number of threads,
+		ylabel=Time (s)
+		]
+		\addplot table [x=Threads, y=FIFO, col sep=comma] {data/spread.csv};
+		\addplot table [x=Threads, y=Round Robin, col sep=comma] {data/spread.csv};
+		\legend{FIFO,Round Robin}
+		\end{axis}
+		\end{tikzpicture}
+		\caption{Spread for real time schedulers.}
+		\label{spread-real}
+	\end{subfigure}
+	\caption{Range}
+	\label{range}
+\end{figure}
+
+
+
+
+\section{Final thoughts and lessons learned}
+
+\pagebreak
+\appendix
+
+\section{Code listings}
+
+\lstinputlisting[language=c, caption=work.c, label=work]{../code/work.c}
+
+\lstinputlisting[language=bash, caption=timer.sh, label=timer]{../code/timer.sh}
+
+\lstinputlisting[language=python, caption=stats.py, label=stats]{../code/stats.py}
+
+\lstinputlisting[caption=Makefile, label=make]{../code/Makefile}
+
+\section{Raw data}\label{raw}
 
 \csvautobooktabular{data/medians.csv}
 
 \csvautobooktabular{data/max.csv}
 
 \csvautobooktabular{data/min.csv}
-
-
-
-\begin{figure}
-	\begin{tikzpicture}
-	\begin{axis}[
-	ymin=0,
-	xlabel=Number of threads,
-	ylabel=Time (s),
-	legend cell align=left,
-	]
-	\addplot table [x=Threads, y=Normal, col sep=comma] {data/medians.csv};
-	\addplot table [x=Threads, y=Batch, col sep=comma] {data/medians.csv};
-	\addplot table [x=Threads, y=Idle, col sep=comma] {data/medians.csv};
-	\legend{Normal,Batch,Idle}
-	\end{axis}
-	\end{tikzpicture}
-	\caption{Median time}
-	\label{median}
-\end{figure}
-
-\begin{figure}
-	\begin{tikzpicture}
-	\begin{axis}[
-	ymin=0,
-	xlabel=Number of threads,
-	ylabel=Time (s),
-	legend cell align=left,
-	]
-	\addplot table [x=Threads, y=FIFO, col sep=comma] {data/medians.csv};
-	\addplot table [x=Threads, y=Round Robin, col sep=comma] {data/medians.csv};
-	\legend{FIFO,Round Robin}
-	\end{axis}
-	\end{tikzpicture}
-	\caption{Median time for real time schedulers.}
-	\label{median-real}
-\end{figure}
-
-\begin{figure}
-	\begin{tikzpicture}
-	\begin{axis}[
-	ymin=0,
-	xlabel=Number of threads,
-	ylabel=Time (s)
-	]
-	\addplot table [x=Threads, y=Normal, col sep=comma] {data/max.csv};
-	\addplot table [x=Threads, y=Batch, col sep=comma] {data/max.csv};
-	\addplot table [x=Threads, y=Idle, col sep=comma] {data/max.csv};
-	\legend{Normal,Batch,Idle}
-	\end{axis}
-	\end{tikzpicture}
-	\caption{Maximum time}
-	\label{max}
-\end{figure}
-
-\begin{figure}
-	\begin{tikzpicture}
-	\begin{axis}[
-	ymin=0,
-	xlabel=Number of threads,
-	ylabel=Time (s)
-	]
-	\addplot table [x=Threads, y=FIFO, col sep=comma] {data/max.csv};
-	\addplot table [x=Threads, y=Round Robin, col sep=comma] {data/max.csv};
-	\legend{FIFO,Round Robin}
-	\end{axis}
-	\end{tikzpicture}
-	\caption{Maximum time for real time schedulers.}
-	\label{max-real}
-\end{figure}
-
-\begin{figure}
-	\begin{tikzpicture}
-	\begin{axis}[
-	ymin=0,
-	xlabel=Number of threads,
-	ylabel=Time (s)
-	]
-	\addplot table [x=Threads, y=Normal, col sep=comma] {data/min.csv};
-	\addplot table [x=Threads, y=Batch, col sep=comma] {data/min.csv};
-	\addplot table [x=Threads, y=Idle, col sep=comma] {data/min.csv};
-	\legend{Normal,Batch,Idle}
-	\end{axis}
-	\end{tikzpicture}
-	\caption{Minimum time}
-	\label{min}
-\end{figure}
-
-\begin{figure}
-	\begin{tikzpicture}
-	\begin{axis}[
-	ymin=0,
-	xlabel=Number of threads,
-	ylabel=Time (s)
-	]
-	\addplot table [x=Threads, y=FIFO, col sep=comma] {data/min.csv};
-	\addplot table [x=Threads, y=Round Robin, col sep=comma] {data/min.csv};
-	\legend{FIFO,Round Robin}
-	\end{axis}
-	\end{tikzpicture}
-	\caption{Minimum time for real time schedulers.}
-	\label{min-real}
-\end{figure}
-
-\begin{figure}
-	\begin{tikzpicture}
-	\begin{axis}[
-	ymin=0,
-	xlabel=Number of threads,
-	ylabel=Time (s)
-	]
-	\addplot table [x=Threads, y=Normal, col sep=comma] {data/spread.csv};
-	\addplot table [x=Threads, y=Batch, col sep=comma] {data/spread.csv};
-	\addplot table [x=Threads, y=Idle, col sep=comma] {data/spread.csv};
-	\legend{Normal,Batch,Idle}
-	\end{axis}
-	\end{tikzpicture}
-	\caption{Spread}
-	\label{spread}
-\end{figure}
-
-\begin{figure}
-	\begin{tikzpicture}
-	\begin{axis}[
-	ymin=0,
-	xlabel=Number of threads,
-	ylabel=Time (s)
-	]
-	\addplot table [x=Threads, y=FIFO, col sep=comma] {data/spread.csv};
-	\addplot table [x=Threads, y=Round Robin, col sep=comma] {data/spread.csv};
-	\legend{FIFO,Round Robin}
-	\end{axis}
-	\end{tikzpicture}
-	\caption{Spread for real time schedulers.}
-	\label{spread-real}
-\end{figure}
-
-\section{Final thoughts and lessons learned}
-
-\appendix
-
-\section{Code listings}
-
-\lstinputlisting[language=c]{../code/work.c}
-
-\lstinputlisting[language=bash]{../code/timer.sh}
-
-\section{Raw data}
 
 %\csvautobooktabular{data/data1.csv}
 %\csvautobooktabular{data/data2.csv}

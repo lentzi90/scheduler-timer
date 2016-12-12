@@ -1,2 +1,9 @@
 work
-data-*
+*.bbl
+*.bgl
+*.log
+*.pdf
+*.gz
+*.out
+*.toc
+*.aux

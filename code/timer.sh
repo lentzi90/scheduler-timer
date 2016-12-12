@@ -15,7 +15,7 @@ do
         # For the polices n(ormal) b(atch) and i(dle)
         for POLICY in n b i f r
         do
-            # Running with 4 threads/jobs
+            # Set policy and number of threads
             FLAGS="-p$POLICY -j$THREADS"
             COMMAND="./work $FLAGS > /dev/null"
             # Run the command and store the time
