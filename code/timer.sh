@@ -4,23 +4,35 @@
 #
 # Author: Lennart Jern (ens16ljn@cs.umu.se)
 
-# For the polices n(ormal) b(atch) and i(dle)
-for p in n b i
+for THREADS in $(seq 1 10)
 do
-    # Running with 4 threads/jobs
-    FLAGS="-p$p -j4"
-    COMMAND="./work $FLAGS > /dev/null"
-    DATA="Scheduler,Time (s)"
-    # Time the command 10 times
+    DATA="Normal,Batch,Idle,FIFO,Round Robin"
+    echo "Running with $THREADS threads"
+    # Time the commands 10 times
     for i in $(seq 1 10)
     do
-        /usr/bin/time --format="%e" --output=data-"$p".txt sh -c "$COMMAND"
-        t=`cat data-"$p".txt`
-        LINE="$p,$t"
+        LINE=""
+        # For the polices n(ormal) b(atch) and i(dle)
+        for POLICY in n b i f r
+        do
+            # Running with 4 threads/jobs
+            FLAGS="-p$POLICY -j$THREADS"
+            COMMAND="./work $FLAGS > /dev/null"
+            # Run the command and store the time
+            t="$(sh -c "TIMEFORMAT='%5R'; time $COMMAND" 2>&1)"
+            # Build the line
+            if [ "$POLICY" = "n" ]; then
+                LINE="$t"
+            else
+                LINE="$LINE,$t"
+            fi
+        done
         DATA=$DATA$'\n'$LINE
+        # A little progress report
+        echo "Run $i done."
     done
-    # Store data for each policy
-    echo "$DATA" > "data-$p.txt"
-    # A little progress report
-    echo "$COMMAND done."
+
+    # Write data to a file
+    echo "$DATA" > "data$THREADS.csv"
+
 done

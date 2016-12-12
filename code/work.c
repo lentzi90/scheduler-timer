@@ -217,7 +217,6 @@ void print_schduler() {
 void set_scheduler(WorkLoad *wl) {
     struct sched_param param;
     pid_t pid = getpid();
-    param.sched_priority = 0;
     int policy = SCHED_NORMAL;
 
     for (int i = 0; i < num_policies; i++) {
@@ -226,6 +225,9 @@ void set_scheduler(WorkLoad *wl) {
             break;
         }
     }
+
+    // Set the priority
+    param.sched_priority = sched_get_priority_max(policy);
 
     if (sched_setscheduler(pid, policy, &param) != 0) {
         perror("Set scheduler");

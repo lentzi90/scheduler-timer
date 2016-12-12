@@ -1,0 +1,236 @@
+\documentclass[12pt, a4paper]{article} %minska pointen om du vill ha mindre bokstäver
+
+\usepackage[english]{babel}
+\usepackage[utf8]{inputenc} 
+\usepackage[T1]{fontenc} 	
+
+\usepackage{amsmath}	% Om du vill använda AMSLaTeX 
+\usepackage{amssymb}	% Om du vill använda AMS symboler
+\usepackage{amsfonts}
+\usepackage{amsthm}
+\usepackage{enumerate}
+\usepackage[hidelinks]{hyperref}
+\usepackage{tikz} % för tikz-figurer
+\usepackage{pgfplots}
+\usepackage{csvsimple}
+\usepackage{booktabs}
+
+\pgfplotsset{width=\textwidth,compat=1.9}
+
+\usepackage[parfill]{parskip}
+
+\usepackage{subcaption} % för flera figurer i en
+
+% Färger för exempelkoden
+\usepackage{xcolor}
+\definecolor{backcol}{gray}{0.95} % bakgrundfärg
+\definecolor{darkpastelgreen}{rgb}{0.01, 0.75, 0.24} % bl.a. kommentarer i koden
+
+\usepackage{listings} % för exempelkod
+% Inställningar
+\lstset{
+	basicstyle=\ttfamily\scriptsize, % monospace, mindre bokstäver
+	basewidth  = {.5em,0.5em}, % minskar avståndet mellan bokstäverna (passar fonten)
+	numbers=left, numberstyle=\tiny, 
+	frame=tb, % streck top och bottom
+	breaklines=true, % radbyte vid behov
+	backgroundcolor = \color{backcol},
+	keywordstyle=\color{blue}, 
+	commentstyle=\color{darkpastelgreen},
+	captionpos=t,
+	framexleftmargin=2mm, % padding
+	xleftmargin=2mm, % lägg till marginal för att hållas i linje med texten
+	framexrightmargin=2mm,
+	xrightmargin=2mm,
+	}
+
+\title{Operating systems -- Assignment 2\\Scheduling}
+
+\author{Lennart Jern\\
+	CS: ens16ljn\\ \\ \textbf{Teacher}\\ Ahmed Aley}
+
+
+\begin{document}
+
+
+\maketitle
+
+\newpage
+
+
+\section{Introduction}
+
+
+
+\section{Implementation}
+
+
+
+\section{Testing}
+
+\csvautobooktabular{data/medians.csv}
+
+\csvautobooktabular{data/max.csv}
+
+\csvautobooktabular{data/min.csv}
+
+
+
+\begin{figure}
+	\begin{tikzpicture}
+	\begin{axis}[
+	ymin=0,
+	xlabel=Number of threads,
+	ylabel=Time (s),
+	legend cell align=left,
+	]
+	\addplot table [x=Threads, y=Normal, col sep=comma] {data/medians.csv};
+	\addplot table [x=Threads, y=Batch, col sep=comma] {data/medians.csv};
+	\addplot table [x=Threads, y=Idle, col sep=comma] {data/medians.csv};
+	\legend{Normal,Batch,Idle}
+	\end{axis}
+	\end{tikzpicture}
+	\caption{Median time}
+	\label{median}
+\end{figure}
+
+\begin{figure}
+	\begin{tikzpicture}
+	\begin{axis}[
+	ymin=0,
+	xlabel=Number of threads,
+	ylabel=Time (s),
+	legend cell align=left,
+	]
+	\addplot table [x=Threads, y=FIFO, col sep=comma] {data/medians.csv};
+	\addplot table [x=Threads, y=Round Robin, col sep=comma] {data/medians.csv};
+	\legend{FIFO,Round Robin}
+	\end{axis}
+	\end{tikzpicture}
+	\caption{Median time for real time schedulers.}
+	\label{median-real}
+\end{figure}
+
+\begin{figure}
+	\begin{tikzpicture}
+	\begin{axis}[
+	ymin=0,
+	xlabel=Number of threads,
+	ylabel=Time (s)
+	]
+	\addplot table [x=Threads, y=Normal, col sep=comma] {data/max.csv};
+	\addplot table [x=Threads, y=Batch, col sep=comma] {data/max.csv};
+	\addplot table [x=Threads, y=Idle, col sep=comma] {data/max.csv};
+	\legend{Normal,Batch,Idle}
+	\end{axis}
+	\end{tikzpicture}
+	\caption{Maximum time}
+	\label{max}
+\end{figure}
+
+\begin{figure}
+	\begin{tikzpicture}
+	\begin{axis}[
+	ymin=0,
+	xlabel=Number of threads,
+	ylabel=Time (s)
+	]
+	\addplot table [x=Threads, y=FIFO, col sep=comma] {data/max.csv};
+	\addplot table [x=Threads, y=Round Robin, col sep=comma] {data/max.csv};
+	\legend{FIFO,Round Robin}
+	\end{axis}
+	\end{tikzpicture}
+	\caption{Maximum time for real time schedulers.}
+	\label{max-real}
+\end{figure}
+
+\begin{figure}
+	\begin{tikzpicture}
+	\begin{axis}[
+	ymin=0,
+	xlabel=Number of threads,
+	ylabel=Time (s)
+	]
+	\addplot table [x=Threads, y=Normal, col sep=comma] {data/min.csv};
+	\addplot table [x=Threads, y=Batch, col sep=comma] {data/min.csv};
+	\addplot table [x=Threads, y=Idle, col sep=comma] {data/min.csv};
+	\legend{Normal,Batch,Idle}
+	\end{axis}
+	\end{tikzpicture}
+	\caption{Minimum time}
+	\label{min}
+\end{figure}
+
+\begin{figure}
+	\begin{tikzpicture}
+	\begin{axis}[
+	ymin=0,
+	xlabel=Number of threads,
+	ylabel=Time (s)
+	]
+	\addplot table [x=Threads, y=FIFO, col sep=comma] {data/min.csv};
+	\addplot table [x=Threads, y=Round Robin, col sep=comma] {data/min.csv};
+	\legend{FIFO,Round Robin}
+	\end{axis}
+	\end{tikzpicture}
+	\caption{Minimum time for real time schedulers.}
+	\label{min-real}
+\end{figure}
+
+\begin{figure}
+	\begin{tikzpicture}
+	\begin{axis}[
+	ymin=0,
+	xlabel=Number of threads,
+	ylabel=Time (s)
+	]
+	\addplot table [x=Threads, y=Normal, col sep=comma] {data/spread.csv};
+	\addplot table [x=Threads, y=Batch, col sep=comma] {data/spread.csv};
+	\addplot table [x=Threads, y=Idle, col sep=comma] {data/spread.csv};
+	\legend{Normal,Batch,Idle}
+	\end{axis}
+	\end{tikzpicture}
+	\caption{Spread}
+	\label{spread}
+\end{figure}
+
+\begin{figure}
+	\begin{tikzpicture}
+	\begin{axis}[
+	ymin=0,
+	xlabel=Number of threads,
+	ylabel=Time (s)
+	]
+	\addplot table [x=Threads, y=FIFO, col sep=comma] {data/spread.csv};
+	\addplot table [x=Threads, y=Round Robin, col sep=comma] {data/spread.csv};
+	\legend{FIFO,Round Robin}
+	\end{axis}
+	\end{tikzpicture}
+	\caption{Spread for real time schedulers.}
+	\label{spread-real}
+\end{figure}
+
+\section{Final thoughts and lessons learned}
+
+\appendix
+
+\section{Code listings}
+
+\lstinputlisting[language=c]{../code/work.c}
+
+\lstinputlisting[language=bash]{../code/timer.sh}
+
+\section{Raw data}
+
+%\csvautobooktabular{data/data1.csv}
+%\csvautobooktabular{data/data2.csv}
+%\csvautobooktabular{data/data3.csv}
+%\csvautobooktabular{data/data4.csv}
+%\csvautobooktabular{data/data5.csv}
+%\csvautobooktabular{data/data6.csv}
+%\csvautobooktabular{data/data7.csv}
+%\csvautobooktabular{data/data8.csv}
+%\csvautobooktabular{data/data9.csv}
+%\csvautobooktabular{data/data10.csv}
+
+\end{document}
