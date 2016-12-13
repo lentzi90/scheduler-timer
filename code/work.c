@@ -19,6 +19,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>           // timing
 #include <errno.h>
 #include <pthread.h>        // threading
 #include <sys/types.h>      // pid
@@ -27,7 +28,9 @@
 
 // Length of sequence to sum
 //#define LENGTH 2147483400
-#define LENGTH 214748340
+//#define LENGTH 214748340
+#define LENGTH 2048
+#define ONE_OVER_BILLION 1E-9
 
 typedef struct work_load {
     int nworkers;
@@ -67,7 +70,6 @@ int main(int argc, char *argv[]) {
     // Print scheduler to make sure it is set coorectly
     print_schduler();
 
-    printf("Starting workers...\n");
     run_workers(wl);
 
     free(wl);
@@ -96,10 +98,21 @@ WorkLoad *get_work_load() {
 */
 void *work(void *packet) {
     Packet *pkt = (Packet *)packet;
-
     long sum = 0;
 
+    // Calculate time taken by a request
+    struct timespec requestStart, requestEnd;
+    clock_gettime(CLOCK_REALTIME, &requestStart);
+
     sum = sum + calculate_sum(pkt->index, pkt->length);
+
+    clock_gettime(CLOCK_REALTIME, &requestEnd);
+
+    // Calculate time it took
+    double accum = ( requestEnd.tv_sec - requestStart.tv_sec )
+      + ( requestEnd.tv_nsec - requestStart.tv_nsec )
+      * ONE_OVER_BILLION;
+    printf( "%lf\n", accum );
 }
 
 /**
@@ -158,7 +171,6 @@ void run_workers(WorkLoad *wl) {
             perror("Could not create thread");
         }
     }
-    printf("Working...\n");
     pkt[i]->index = i * len / num;
     pkt[i]->length = p_len;
     work((void *)pkt[i]);

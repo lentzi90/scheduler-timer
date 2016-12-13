@@ -17,7 +17,7 @@ do
         do
             # Set policy and number of threads
             FLAGS="-p$POLICY -j$THREADS"
-            COMMAND="./work $FLAGS > /dev/null"
+            COMMAND="./work $FLAGS >> ../data/threads$THREADS$POLICY.log"
             # Run the command and store the time
             t="$(sh -c "TIMEFORMAT='%5R'; time $COMMAND" 2>&1)"
             # Build the line
@@ -33,6 +33,7 @@ do
     done
 
     # Write data to a file
-    echo "$DATA" > "data$THREADS.csv"
+    echo "$DATA" > "../data/data$THREADS.csv"
+    chown lennart ../data/threads*
 
 done
