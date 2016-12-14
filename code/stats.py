@@ -9,6 +9,7 @@ Author: Lennart Jern (ens16ljn@cs.umu.se)
 
 import pandas as pd
 import re
+import matplotlib.pyplot as plt
 
 def total_stats():
     # The data file names are of the form data<thread count>.csv
@@ -17,23 +18,23 @@ def total_stats():
     ext = ".csv"
     header = ("Normal", "Batch", "Idle", "FIFO", "Round Robin")
     # Data frames to store the results in
-    med = pd.DataFrame(columns=header)
-    mx = pd.DataFrame(columns=header)
-    mn = pd.DataFrame(columns=header)
-    thread_med = pd.DataFrame(columns=header)
-    thread_mx = pd.DataFrame(columns=header)
-    thread_mn = pd.DataFrame(columns=header)
+    med = pd.DataFrame(columns=header)          # Medians (total runtime)
+    mx = pd.DataFrame(columns=header)           # Max (total runtime)
+    mn = pd.DataFrame(columns=header)           # Min (total runtime)
+    thread_med = pd.DataFrame(columns=header)   # Medians (threads)
+    thread_mx = pd.DataFrame(columns=header)    # Max (threads)
+    thread_mn = pd.DataFrame(columns=header)    # Min (threads)
 
     # For each number of threads
     for i in range(1,11):
         # Build the file name
-        f = base + str(i) + ext
-        thr_f = thread_base + str(i) + ext
+        f = base + str(i) + ext             # Total run times
+        thr_f = thread_base + str(i) + ext  # Thread times
         # Read the time data
         df = pd.read_csv(f)
         thr_df = pd.read_csv(thr_f)
 
-        # Add data to results
+        # Calculate some statistical properties
         med.loc[i] = df.median()
         mx.loc[i] = df.max()
         mn.loc[i] = df.min()
@@ -41,19 +42,31 @@ def total_stats():
         thread_mx.loc[i] = thr_df.max()
         thread_mn.loc[i] = thr_df.min()
 
-    # Write everything to files
-    med.to_csv("medians" + ext, index_label="Threads", float_format="%.3f")
-    mx.to_csv("max" + ext, index_label="Threads", float_format="%.3f")
-    mn.to_csv("min" + ext, index_label="Threads", float_format="%.3f")
-    thread_med.to_csv("thread_medians" + ext, index_label="Threads", float_format="%.3f")
-    thread_mx.to_csv("thread_max" + ext, index_label="Threads", float_format="%.3f")
-    thread_mn.to_csv("thread_min" + ext, index_label="Threads", float_format="%.3f")
-
-    # Caclulate range
+    # Calculate ranges
     rng = mx-mn
     thr_rng = mx-mn
-    rng.to_csv("range" + ext, index_label="Threads", float_format="%.3f")
-    thr_rng.to_csv("thread_range" + ext, index_label="Threads", float_format="%.3f")
+
+    # Write everything to files
+    data_frames = [med, mx, mn, thread_med, thread_mx, thread_mn, rng, thr_rng]
+    base = "../data/"
+    names = ["medians", "max", "min", "thread_medians", "thread_max", "thread_min", "range", "thread_range"]
+    for frm, name in zip(data_frames, names):
+        frm.to_csv(base+name + ext, index_label="Threads", float_format="%.5f")
+
+    # Plot
+    # ax2 = thr_df["FIFO"].plot.hist(bins=20)
+    # fig2 = ax2.get_figure()
+    # fig2.savefig('hist.pdf')
+
+    # ax = thr_df.plot.box()
+    # fig = ax.get_figure()
+    # fig.savefig('box.pdf')
+
+    # ax = thr_df[["Normal", "Idle", "FIFO"]].plot.kde()
+    ax = thr_df[["Batch", "Round Robin"]].plot.kde()
+
+    fig = ax.get_figure()
+    fig.savefig('test.pdf')
 
 
 

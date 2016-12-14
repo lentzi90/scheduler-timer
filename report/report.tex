@@ -16,6 +16,7 @@
 \usepackage{booktabs}
 
 \pgfplotsset{width=\textwidth,compat=1.9}
+\usepgfplotslibrary{statistics}
 
 \usepackage[parfill]{parskip}
 
@@ -113,6 +114,7 @@
 	\caption{Threads min.}
 	\label{threads-min}
 \end{figure}
+
 
 \section{Introduction}
 
@@ -317,6 +319,43 @@ The raw data collected can be found in appendix \ref{raw}.
 %	\label{range}
 %\end{figure}
 
+\begin{figure}
+	\centering
+	\begin{subfigure}[t]{0.8\textwidth}
+		\begin{tikzpicture}
+		\begin{axis}[
+		ymin=0,
+		xlabel=Number of threads,
+		ylabel=Time (s)
+		]
+		\addplot table [x=Threads, y=Normal, col sep=comma] {../data/thread_range.csv};
+		\addplot table [x=Threads, y=Batch, col sep=comma] {../data/thread_range.csv};
+		\addplot table [x=Threads, y=Idle, col sep=comma] {../data/thread_range.csv};
+		\legend{Normal,Batch,Idle}
+		\end{axis}
+		\end{tikzpicture}
+		\caption{Spread}
+		\label{spread}
+	\end{subfigure}
+	
+	\begin{subfigure}[t]{0.8\textwidth}
+		\begin{tikzpicture}
+		\begin{axis}[
+		ymin=0,
+		xlabel=Number of threads,
+		ylabel=Time (s)
+		]
+		\addplot table [x=Threads, y=FIFO, col sep=comma] {../data/thread_range.csv};
+		\addplot table [x=Threads, y=Round Robin, col sep=comma] {../data/thread_range.csv};
+		\legend{FIFO,Round Robin}
+		\end{axis}
+		\end{tikzpicture}
+		\caption{Spread for real time schedulers.}
+		\label{spread-real}
+	\end{subfigure}
+	\caption{Range}
+	\label{range}
+\end{figure}
 
 
 
