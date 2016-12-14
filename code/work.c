@@ -28,8 +28,8 @@
 
 // Length of sequence to sum
 //#define LENGTH 2147483400
-//#define LENGTH 214748340
-#define LENGTH 2048
+#define LENGTH 214748340
+//#define LENGTH 2048
 #define ONE_OVER_BILLION 1E-9
 
 typedef struct work_load {

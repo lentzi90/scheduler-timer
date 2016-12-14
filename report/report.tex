@@ -57,6 +57,62 @@
 
 \newpage
 
+\begin{figure}
+	\begin{tikzpicture}
+	\begin{axis}[
+	ymin=0,
+	xlabel=Number of threads,
+	ylabel=Time (s)
+	]
+	\addplot table [x=Threads, y=Normal, col sep=comma] {data/thread_medians.csv};
+	\addplot table [x=Threads, y=Batch, col sep=comma] {data/thread_medians.csv};
+	\addplot table [x=Threads, y=Idle, col sep=comma] {data/thread_medians.csv};
+	\addplot table [x=Threads, y=FIFO, col sep=comma] {data/thread_medians.csv};
+	\addplot table [x=Threads, y=Round Robin, col sep=comma] {data/thread_medians.csv};
+	\legend{FIFO,Round Robin}
+	\end{axis}
+	\end{tikzpicture}
+	\caption{Threads.}
+	\label{threads-medians}
+\end{figure}
+
+\begin{figure}
+	\begin{tikzpicture}
+	\begin{axis}[
+	ymin=0,
+	xlabel=Number of threads,
+	ylabel=Time (s)
+	]
+	\addplot table [x=Threads, y=Normal, col sep=comma] {data/thread_max.csv};
+	\addplot table [x=Threads, y=Batch, col sep=comma] {data/thread_max.csv};
+	\addplot table [x=Threads, y=Idle, col sep=comma] {data/thread_max.csv};
+	\addplot table [x=Threads, y=FIFO, col sep=comma] {data/thread_max.csv};
+	\addplot table [x=Threads, y=Round Robin, col sep=comma] {data/thread_max.csv};
+	\legend{FIFO,Round Robin}
+	\end{axis}
+	\end{tikzpicture}
+	\caption{Threads max.}
+	\label{threads-max}
+\end{figure}
+
+\begin{figure}
+	\begin{tikzpicture}
+	\begin{axis}[
+	ymin=0,
+	xlabel=Number of threads,
+	ylabel=Time (s)
+	]
+	\addplot table [x=Threads, y=Normal, col sep=comma] {data/thread_min.csv};
+	\addplot table [x=Threads, y=Batch, col sep=comma] {data/thread_min.csv};
+	\addplot table [x=Threads, y=Idle, col sep=comma] {data/thread_min.csv};
+	\addplot table [x=Threads, y=FIFO, col sep=comma] {data/thread_min.csv};
+	\addplot table [x=Threads, y=Round Robin, col sep=comma] {data/thread_min.csv};
+	\legend{FIFO,Round Robin}
+	\end{axis}
+	\end{tikzpicture}
+	\caption{Threads min.}
+	\label{threads-min}
+\end{figure}
 
 \section{Introduction}
 
@@ -145,121 +201,121 @@ The raw data collected can be found in appendix \ref{raw}.
 	\end{subfigure}
 	\caption{The median time required to finish the task.}
 \end{figure}
-
-\begin{figure}
-	\centering
-	\begin{subfigure}[t]{0.8\textwidth}
-		\begin{tikzpicture}
-		\begin{axis}[
-		ymin=0,
-		xlabel=Number of threads,
-		ylabel=Time (s)
-		]
-		\addplot table [x=Threads, y=Normal, col sep=comma] {data/max.csv};
-		\addplot table [x=Threads, y=Batch, col sep=comma] {data/max.csv};
-		\addplot table [x=Threads, y=Idle, col sep=comma] {data/max.csv};
-		\legend{Normal,Batch,Idle}
-		\end{axis}
-		\end{tikzpicture}
-		\caption{Maximum time}
-		\label{max}
-	\end{subfigure}
-	
-	\begin{subfigure}[t]{0.8\textwidth}
-		\begin{tikzpicture}
-		\begin{axis}[
-		ymin=0,
-		xlabel=Number of threads,
-		ylabel=Time (s)
-		]
-		\addplot table [x=Threads, y=FIFO, col sep=comma] {data/max.csv};
-		\addplot table [x=Threads, y=Round Robin, col sep=comma] {data/max.csv};
-		\legend{FIFO,Round Robin}
-		\end{axis}
-		\end{tikzpicture}
-		\caption{Maximum time for real time schedulers.}
-		\label{max-real}
-	\end{subfigure}
-	\caption{The maximum run time required to complete the task.}
-\end{figure}
-
-
-
-\begin{figure}
-	\centering
-	\begin{subfigure}[t]{0.8\textwidth}
-		\begin{tikzpicture}
-		\begin{axis}[
-		ymin=0,
-		xlabel=Number of threads,
-		ylabel=Time (s)
-		]
-		\addplot table [x=Threads, y=Normal, col sep=comma] {data/min.csv};
-		\addplot table [x=Threads, y=Batch, col sep=comma] {data/min.csv};
-		\addplot table [x=Threads, y=Idle, col sep=comma] {data/min.csv};
-		\legend{Normal,Batch,Idle}
-		\end{axis}
-		\end{tikzpicture}
-		\caption{Minimum time}
-		\label{min}
-	\end{subfigure}
-	
-	\begin{subfigure}[t]{0.8\textwidth}
-		\begin{tikzpicture}
-		\begin{axis}[
-		ymin=0,
-		xlabel=Number of threads,
-		ylabel=Time (s)
-		]
-		\addplot table [x=Threads, y=FIFO, col sep=comma] {data/min.csv};
-		\addplot table [x=Threads, y=Round Robin, col sep=comma] {data/min.csv};
-		\legend{FIFO,Round Robin}
-		\end{axis}
-		\end{tikzpicture}
-		\caption{Minimum time for real time schedulers.}
-		\label{min-real}
-	\end{subfigure}
-	\caption{The minimum run time required to complete the task.}
-\end{figure}
-
-
-\begin{figure}
-	\centering
-	\begin{subfigure}[t]{0.8\textwidth}
-		\begin{tikzpicture}
-		\begin{axis}[
-		ymin=0,
-		xlabel=Number of threads,
-		ylabel=Time (s)
-		]
-		\addplot table [x=Threads, y=Normal, col sep=comma] {data/spread.csv};
-		\addplot table [x=Threads, y=Batch, col sep=comma] {data/spread.csv};
-		\addplot table [x=Threads, y=Idle, col sep=comma] {data/spread.csv};
-		\legend{Normal,Batch,Idle}
-		\end{axis}
-		\end{tikzpicture}
-		\caption{Spread}
-		\label{spread}
-	\end{subfigure}
-	
-	\begin{subfigure}[t]{0.8\textwidth}
-		\begin{tikzpicture}
-		\begin{axis}[
-		ymin=0,
-		xlabel=Number of threads,
-		ylabel=Time (s)
-		]
-		\addplot table [x=Threads, y=FIFO, col sep=comma] {data/spread.csv};
-		\addplot table [x=Threads, y=Round Robin, col sep=comma] {data/spread.csv};
-		\legend{FIFO,Round Robin}
-		\end{axis}
-		\end{tikzpicture}
-		\caption{Spread for real time schedulers.}
-		\label{spread-real}
-	\end{subfigure}
-	\caption{Range}
-	\label{range}
-\end{figure}
+%
+%\begin{figure}
+%	\centering
+%	\begin{subfigure}[t]{0.8\textwidth}
+%		\begin{tikzpicture}
+%		\begin{axis}[
+%		ymin=0,
+%		xlabel=Number of threads,
+%		ylabel=Time (s)
+%		]
+%		\addplot table [x=Threads, y=Normal, col sep=comma] {data/max.csv};
+%		\addplot table [x=Threads, y=Batch, col sep=comma] {data/max.csv};
+%		\addplot table [x=Threads, y=Idle, col sep=comma] {data/max.csv};
+%		\legend{Normal,Batch,Idle}
+%		\end{axis}
+%		\end{tikzpicture}
+%		\caption{Maximum time}
+%		\label{max}
+%	\end{subfigure}
+%	
+%	\begin{subfigure}[t]{0.8\textwidth}
+%		\begin{tikzpicture}
+%		\begin{axis}[
+%		ymin=0,
+%		xlabel=Number of threads,
+%		ylabel=Time (s)
+%		]
+%		\addplot table [x=Threads, y=FIFO, col sep=comma] {data/max.csv};
+%		\addplot table [x=Threads, y=Round Robin, col sep=comma] {data/max.csv};
+%		\legend{FIFO,Round Robin}
+%		\end{axis}
+%		\end{tikzpicture}
+%		\caption{Maximum time for real time schedulers.}
+%		\label{max-real}
+%	\end{subfigure}
+%	\caption{The maximum run time required to complete the task.}
+%\end{figure}
+%
+%
+%
+%\begin{figure}
+%	\centering
+%	\begin{subfigure}[t]{0.8\textwidth}
+%		\begin{tikzpicture}
+%		\begin{axis}[
+%		ymin=0,
+%		xlabel=Number of threads,
+%		ylabel=Time (s)
+%		]
+%		\addplot table [x=Threads, y=Normal, col sep=comma] {data/min.csv};
+%		\addplot table [x=Threads, y=Batch, col sep=comma] {data/min.csv};
+%		\addplot table [x=Threads, y=Idle, col sep=comma] {data/min.csv};
+%		\legend{Normal,Batch,Idle}
+%		\end{axis}
+%		\end{tikzpicture}
+%		\caption{Minimum time}
+%		\label{min}
+%	\end{subfigure}
+%	
+%	\begin{subfigure}[t]{0.8\textwidth}
+%		\begin{tikzpicture}
+%		\begin{axis}[
+%		ymin=0,
+%		xlabel=Number of threads,
+%		ylabel=Time (s)
+%		]
+%		\addplot table [x=Threads, y=FIFO, col sep=comma] {data/min.csv};
+%		\addplot table [x=Threads, y=Round Robin, col sep=comma] {data/min.csv};
+%		\legend{FIFO,Round Robin}
+%		\end{axis}
+%		\end{tikzpicture}
+%		\caption{Minimum time for real time schedulers.}
+%		\label{min-real}
+%	\end{subfigure}
+%	\caption{The minimum run time required to complete the task.}
+%\end{figure}
+%
+%
+%\begin{figure}
+%	\centering
+%	\begin{subfigure}[t]{0.8\textwidth}
+%		\begin{tikzpicture}
+%		\begin{axis}[
+%		ymin=0,
+%		xlabel=Number of threads,
+%		ylabel=Time (s)
+%		]
+%		\addplot table [x=Threads, y=Normal, col sep=comma] {data/range.csv};
+%		\addplot table [x=Threads, y=Batch, col sep=comma] {data/range.csv};
+%		\addplot table [x=Threads, y=Idle, col sep=comma] {data/range.csv};
+%		\legend{Normal,Batch,Idle}
+%		\end{axis}
+%		\end{tikzpicture}
+%		\caption{Spread}
+%		\label{spread}
+%	\end{subfigure}
+%	
+%	\begin{subfigure}[t]{0.8\textwidth}
+%		\begin{tikzpicture}
+%		\begin{axis}[
+%		ymin=0,
+%		xlabel=Number of threads,
+%		ylabel=Time (s)
+%		]
+%		\addplot table [x=Threads, y=FIFO, col sep=comma] {data/range.csv};
+%		\addplot table [x=Threads, y=Round Robin, col sep=comma] {data/range.csv};
+%		\legend{FIFO,Round Robin}
+%		\end{axis}
+%		\end{tikzpicture}
+%		\caption{Spread for real time schedulers.}
+%		\label{spread-real}
+%	\end{subfigure}
+%	\caption{Range}
+%	\label{range}
+%\end{figure}
 
 
 
