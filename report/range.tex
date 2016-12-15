@@ -1,0 +1,39 @@
+\begin{figure}
+	\centering
+	\begin{subfigure}[t]{0.8\textwidth}
+		\centering
+		\begin{tikzpicture}
+		\begin{axis}[
+		ymin=0,
+		xlabel=Number of threads,
+		ylabel=Time (s)
+		]
+		\addplot table [x=Threads, y=Normal, col sep=comma] {../data/thread_range.csv};
+		\addplot table [x=Threads, y=Batch, col sep=comma] {../data/thread_range.csv};
+		\addplot table [x=Threads, y=Idle, col sep=comma] {../data/thread_range.csv};
+		\legend{Normal,Batch,Idle}
+		\end{axis}
+		\end{tikzpicture}
+		\caption{Range for normal schedulers}
+		\label{spread}
+	\end{subfigure}
+	
+	\begin{subfigure}[t]{0.8\textwidth}
+		\centering
+		\begin{tikzpicture}
+		\begin{axis}[
+		ymin=0,
+		xlabel=Number of threads,
+		ylabel=Time (s)
+		]
+		\addplot table [x=Threads, y=FIFO, col sep=comma] {../data/thread_range.csv};
+		\addplot table [x=Threads, y=Round Robin, col sep=comma] {../data/thread_range.csv};
+		\legend{FIFO,Round Robin}
+		\end{axis}
+		\end{tikzpicture}
+		\caption{Range for real time schedulers.}
+		\label{spread-real}
+	\end{subfigure}
+	\caption{Range}
+	\label{range}
+\end{figure}

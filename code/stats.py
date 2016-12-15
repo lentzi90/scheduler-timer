@@ -42,6 +42,28 @@ def total_stats():
         thread_mx.loc[i] = thr_df.max()
         thread_mn.loc[i] = thr_df.min()
 
+        # Plot and save some nice figures
+        # Density curves for thread count 2, 4 and 8
+        if (i == 2):
+            ax = thr_df.plot.kde()
+            fig = ax.get_figure()
+            fig.savefig('density2.pdf')
+
+        if (i == 4 or i == 8):
+            ax = thr_df[["Normal", "Idle", "FIFO"]].plot.kde()
+            fig = ax.get_figure()
+            fig.savefig("density"+str(i)+"_nif.pdf")
+            ax2 = thr_df[["Batch", "Round Robin"]].plot.kde()
+            fig2 = ax2.get_figure()
+            fig2.savefig("density"+str(i)+"_br.pdf")
+
+        # Box plots for all thread counts
+        ax = thr_df.plot.box()
+        ax.set_ylabel("Time (s)")
+        fig = ax.get_figure()
+        fig.savefig("box"+str(i)+".pdf")
+
+
     # Calculate ranges
     rng = mx-mn
     thr_rng = mx-mn
@@ -49,25 +71,10 @@ def total_stats():
     # Write everything to files
     data_frames = [med, mx, mn, thread_med, thread_mx, thread_mn, rng, thr_rng]
     base = "../data/"
-    names = ["medians", "max", "min", "thread_medians", "thread_max", "thread_min", "range", "thread_range"]
+    names = ["medians", "max", "min", "thread_medians", "thread_max",
+             "thread_min", "range", "thread_range"]
     for frm, name in zip(data_frames, names):
         frm.to_csv(base+name + ext, index_label="Threads", float_format="%.5f")
-
-    # Plot
-    # ax2 = thr_df["FIFO"].plot.hist(bins=20)
-    # fig2 = ax2.get_figure()
-    # fig2.savefig('hist.pdf')
-
-    # ax = thr_df.plot.box()
-    # fig = ax.get_figure()
-    # fig.savefig('box.pdf')
-
-    # ax = thr_df[["Normal", "Idle", "FIFO"]].plot.kde()
-    ax = thr_df[["Batch", "Round Robin"]].plot.kde()
-
-    fig = ax.get_figure()
-    fig.savefig('test.pdf')
-
 
 
 def collect_thread_times(file_name):
@@ -94,8 +101,6 @@ def thread_stats():
     base = "../data/threads"
     ext = ".log"
     header=("Normal", "Batch", "Idle", "FIFO", "Round Robin")
-    # Files to write: thread{}.csv
-    # csv_files = [base+str(i)+".csv" for i in threads]
 
     # Collect all times for one thread count in one file
     for t in threads:
@@ -108,8 +113,6 @@ def thread_stats():
         df.to_csv(get_csv_name(t), index=False, header=header)
 
 
-
-
 def get_file_name(threads, scheduler):
     """Get the file name for the data regarding <scheduler> and <threads>"""
     base = "../data/threads"
@@ -117,7 +120,7 @@ def get_file_name(threads, scheduler):
     return base + str(threads) + scheduler + ext
 
 def get_csv_name(threads):
-    """Get name of file to write data about thread count <threads> to"""
+    """For a specific number of threads: Get name of file to write data to"""
     base = "../data/threads"
     ext = ".csv"
     return base + str(threads) + ext

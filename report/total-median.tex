@@ -1,0 +1,21 @@
+\begin{figure}[ht]
+	\centering
+	\begin{tikzpicture}
+		\begin{axis}[
+		width=0.75\textwidth,
+		ymin=0,
+		xlabel=Number of threads,
+		ylabel=Time (s),
+		legend cell align=left,
+		]
+		\addplot table [x=Threads, y=Normal, col sep=comma] {data/medians.csv};
+		\addplot table [x=Threads, y=Batch, col sep=comma] {data/medians.csv};
+		\addplot table [x=Threads, y=Idle, col sep=comma] {data/medians.csv};
+		\addplot table [x=Threads, y=FIFO, col sep=comma] {data/medians.csv};
+		\addplot table [x=Threads, y=Round Robin, col sep=comma] {data/medians.csv};
+		\legend{Normal,Batch,Idle,FIFO,Round Robin}
+		\end{axis}
+	\end{tikzpicture}
+	\caption{The median time required to finish the complete task.}
+	\label{median}
+\end{figure}
