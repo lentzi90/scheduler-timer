@@ -59,67 +59,31 @@
 \newpage
 
 
-
-\begin{figure}
-	\begin{tikzpicture}
-	\begin{axis}[
-	ymin=0,
-	xlabel=Number of threads,
-	ylabel=Time (s)
-	]
-	\addplot table [x=Threads, y=Normal, col sep=comma] {data/thread_max.csv};
-	\addplot table [x=Threads, y=Batch, col sep=comma] {data/thread_max.csv};
-	\addplot table [x=Threads, y=Idle, col sep=comma] {data/thread_max.csv};
-	\addplot table [x=Threads, y=FIFO, col sep=comma] {data/thread_max.csv};
-	\addplot table [x=Threads, y=Round Robin, col sep=comma] {data/thread_max.csv};
-	\legend{FIFO,Round Robin}
-	\end{axis}
-	\end{tikzpicture}
-	\caption{Threads max.}
-	\label{threads-max}
-\end{figure}
-
-\begin{figure}
-	\begin{tikzpicture}
-	\begin{axis}[
-	ymin=0,
-	xlabel=Number of threads,
-	ylabel=Time (s)
-	]
-	\addplot table [x=Threads, y=Normal, col sep=comma] {data/thread_min.csv};
-	\addplot table [x=Threads, y=Batch, col sep=comma] {data/thread_min.csv};
-	\addplot table [x=Threads, y=Idle, col sep=comma] {data/thread_min.csv};
-	\addplot table [x=Threads, y=FIFO, col sep=comma] {data/thread_min.csv};
-	\addplot table [x=Threads, y=Round Robin, col sep=comma] {data/thread_min.csv};
-	\legend{FIFO,Round Robin}
-	\end{axis}
-	\end{tikzpicture}
-	\caption{Threads min.}
-	\label{threads-min}
-\end{figure}
-
-
 \section{Introduction}
 
 The Linux kernel provides a number of different scheduling policies that can be used to fine tune the performance of certain applications.
-In this report, five different schedulers are evaluated using an artificial, CPU intensive, work load.
+In this report, five different schedulers are evaluated using an artificial, CPU intensive, task.
 Three of the tested schedulers are ``normal'', while the last two are ``real-time'' schedulers, meaning that they provide higher priority for their processes than the normal ones do.
 
 The work load consists of a simple program, called \texttt{work}, that sums over a part of Grandi's series\footnote{\url{https://en.wikipedia.org/wiki/Grandi's_series}} ($1-1+1-1+\dots$), using a specified number of threads.
+The source code for \texttt{work} can be found in listing \ref{work}.
 Since the task is easy to parallelize, only require minimal memory access and no disk access, it should be comparable to CPU intense tasks like compression and matrix calculations.
 
 \section{Implementation (Method?)}
 
-A Bash script (\texttt{timer.sh}) was used to collect data by timing the work load 10 times for each scheduler, for thread counts ranging from 1 to 10.
+A Bash script (\texttt{timer.sh}, listing \ref{timer}) was used to time the complete task 10 times for each scheduler, for thread counts ranging from 1 to 10.
 See code listing \ref{timer} for the code.
-The data was then processed by a simple Python program in order to calculate the median, minimum and maximum run time for each scheduler and thread count.
-It should be noted here that the real-time schedulers were run with maximum priority.
-The other schedulers does not accept any priority settings.
+Additionally, each thread keeps track of the time taken from the start of its execution until it is finished, and prints this information to \texttt{stdout}, which is forwarded to data files by the bash script.
+
+All this data was then processed by a simple Python program, \texttt{stats}, in order to calculate the median, minimum and maximum run time for each scheduler and thread count; for both the total run times and the individual thread times.
+This program can be found in listing \ref{stats}.
+In addition to the statistical calculations, \texttt{stats} also produces some figures to describe the data.
+The figures and calculations are mostly done using the python libraries Pandas\footnote{\url{http://pandas.pydata.org/}} and Matplotlib\footnote{\url{http://matplotlib.org/}}.
+
+It should be noted here that the processes running with real-time schedulers were run with maximum priority.
+Since the other schedulers does not accept a priority setting, other than the nice value, these were left untouched.
 
 All tests were run on my personal computer with the specifications seen in table \ref{spec}.
-
-% Versions of relevant packages, makefile
-% Pandas, bash, python, gcc
 
 \begin{table}[h]
 	\centering
@@ -129,9 +93,14 @@ All tests were run on my personal computer with the specifications seen in table
 		OS: & Fedora 25 \\
 		Kernel: & Linux 4.8.12-300.fc25.x86\_64 \\
 		CPU: & Intel Core i5-2500K CPU @ 3.7GHz \\
-		RAM: & 7965MiB
+		RAM: & 7965MiB \\
+		GCC: & 6.2.1 \\
+		Bash: & 4.3.43 \\
+		Python: & 3.5.2 \\
+		Pandas: & 0.18.1 \\
+		Matplotlib: & 1.5.3
 	\end{tabular}
-	\caption{Test system specification}
+	\caption{Test system specification.}
 	\label{spec}
 \end{table}
 
@@ -139,21 +108,27 @@ All tests were run on my personal computer with the specifications seen in table
 
 \section{Results}
 
-An immediate inspection of the timing data does not reveal any significant differences between the schedulers, not even between the normal and real-time ones.
-The median run times can be seen in figure \ref{median} for the normal schedulers and in figure \ref{median-real} for the real-time schedulers.
-Similarly, the maximum and minimum run times for the normal, batch and idle schedulers can be seen in figures \ref{max} and \ref{min} respectively, while the real-time equivalents appears in figures \ref{max-real} and \ref{min-real}.
+For the total run time of the process, there does not seem to be much of a difference between the five schedulers.
+This is perhaps not too surprising considering that the system was practically idle, except for the work load process, so this process naturally got all resources the system could offer.
 
-It is more interesting to compare the range of response times between the schedulers (fig. \ref{range}).
-This reveals a clear difference between the real-time and normal schedulers, where the real-time ones are clearly more predictable for two or more threads.
+
+% Necessary?
+%It is more interesting to compare the range of response times between the schedulers (fig. \ref{range}).
+%This reveals a clear difference between the real-time and normal schedulers, where the real-time ones are clearly more predictable for two or more threads.
 
 The raw data collected can be found in appendix \ref{raw}.
 
 
+
+
 \input{threads-median.tex}
+
+\input{threads-min-max.tex}
 
 \input{total-median.tex}
 
-\input{range.tex}
+% Necessary?
+%\input{range.tex}
 
 \input{box.tex}
 
@@ -161,7 +136,8 @@ The raw data collected can be found in appendix \ref{raw}.
 
 \section{Final thoughts and lessons learned}
 
-\pagebreak
+%\pagebreak
+\clearpage
 \appendix
 
 \section{Code listings}

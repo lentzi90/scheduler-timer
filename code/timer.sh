@@ -6,7 +6,7 @@
 
 for THREADS in $(seq 1 10)
 do
-    DATA="Normal,Batch,Idle,FIFO,Round Robin"
+    DATA="Normal,Batch,Idle,FIFO,RR"
     echo "Running with $THREADS threads"
     # Time the commands 10 times
     for i in $(seq 1 10)

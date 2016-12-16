@@ -16,7 +16,7 @@ def total_stats():
     base = "../data/data"
     thread_base = "../data/threads"
     ext = ".csv"
-    header = ("Normal", "Batch", "Idle", "FIFO", "Round Robin")
+    header = ("Normal", "Batch", "Idle", "FIFO", "RR")
     # Data frames to store the results in
     med = pd.DataFrame(columns=header)          # Medians (total runtime)
     mx = pd.DataFrame(columns=header)           # Max (total runtime)
@@ -50,15 +50,15 @@ def total_stats():
             fig.savefig('density2.pdf')
 
         if (i == 4 or i == 8):
-            ax = thr_df[["Normal", "Idle", "FIFO"]].plot.kde()
+            ax = thr_df[["Normal", "Idle", "FIFO"]].plot.kde(figsize=(6,4))
             fig = ax.get_figure()
             fig.savefig("density"+str(i)+"_nif.pdf")
-            ax2 = thr_df[["Batch", "Round Robin"]].plot.kde()
+            ax2 = thr_df[["Batch", "RR"]].plot.kde(figsize=(6,4))
             fig2 = ax2.get_figure()
             fig2.savefig("density"+str(i)+"_br.pdf")
 
         # Box plots for all thread counts
-        ax = thr_df.plot.box()
+        ax = thr_df.plot.box(figsize=(3.5,3.5))
         ax.set_ylabel("Time (s)")
         fig = ax.get_figure()
         fig.savefig("box"+str(i)+".pdf")
@@ -100,7 +100,7 @@ def thread_stats():
     schedulers = ["n", "b", "i", "f", "r"]
     base = "../data/threads"
     ext = ".log"
-    header=("Normal", "Batch", "Idle", "FIFO", "Round Robin")
+    header=("Normal", "Batch", "Idle", "FIFO", "RR")
 
     # Collect all times for one thread count in one file
     for t in threads:
