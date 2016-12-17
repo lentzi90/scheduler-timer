@@ -1,0 +1,39 @@
+\begin{figure}
+	\centering
+	\begin{subfigure}[t]{0.45\textwidth}
+		\centering
+		\begin{tikzpicture}
+		\begin{axis}[
+		width=\textwidth,
+		ymin=0,
+		xlabel=Number of threads,
+		ylabel=Time (s)
+		]
+		\addplot table [x=Threads, y=Normal, col sep=comma] {../data/thread_range.csv};
+		\addplot table [x=Threads, y=Batch, col sep=comma] {../data/thread_range.csv};
+		\addplot table [x=Threads, y=Idle, col sep=comma] {../data/thread_range.csv};
+		\legend{Normal,Batch,Idle}
+		\end{axis}
+		\end{tikzpicture}
+		\caption{The range in response times for normal schedulers}
+	\end{subfigure}
+	~
+	\begin{subfigure}[t]{0.45\textwidth}
+		\centering
+		\begin{tikzpicture}
+		\begin{axis}[
+		width=\textwidth,
+		ymin=0,
+		xlabel=Number of threads,
+		ylabel=Time (s)
+		]
+		\addplot table [x=Threads, y=FIFO, col sep=comma] {../data/thread_range.csv};
+		\addplot table [x=Threads, y=RR, col sep=comma] {../data/thread_range.csv};
+		\legend{FIFO,Round Robin}
+		\end{axis}
+		\end{tikzpicture}
+		\caption{The range in response times for real time schedulers.}
+	\end{subfigure}
+	\caption{A comparison of response times per thread between the different schedulers.}
+	\label{thread-range}
+\end{figure}

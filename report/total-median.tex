@@ -12,10 +12,10 @@
 		\addplot table [x=Threads, y=Batch, col sep=comma] {data/medians.csv};
 		\addplot table [x=Threads, y=Idle, col sep=comma] {data/medians.csv};
 		\addplot table [x=Threads, y=FIFO, col sep=comma] {data/medians.csv};
-		\addplot table [x=Threads, y=Round Robin, col sep=comma] {data/medians.csv};
+		\addplot table [x=Threads, y=RR, col sep=comma] {data/medians.csv};
 		\legend{Normal,Batch,Idle,FIFO,Round Robin}
 		\end{axis}
 	\end{tikzpicture}
 	\caption{The median time required to finish the complete task.}
-	\label{median}
+	\label{median-total}
 \end{figure}

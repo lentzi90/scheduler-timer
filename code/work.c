@@ -14,7 +14,6 @@
  * i - Idle
  * f - FIFO
  * r - RR
- * d - Deadline
  */
 
 #include <stdio.h>
@@ -27,9 +26,7 @@
 #include <linux/sched.h>    // schduling policies
 
 // Length of sequence to sum
-//#define LENGTH 2147483400
-#define LENGTH 214748340
-//#define LENGTH 2048
+#define LENGTH 2147483400
 #define ONE_OVER_BILLION 1E-9
 
 typedef struct work_load {
@@ -42,6 +39,7 @@ typedef struct work_packet {
     long index;
     long length;
     long result;
+    struct timespec start;
 } Packet;
 
 WorkLoad *get_work_load();
@@ -53,10 +51,11 @@ void print_schduler();
 void set_scheduler(WorkLoad *wl);
 void set_settings(WorkLoad *wl, int argc, char *argv[]);
 
-int num_policies = 6;
-char c_policies[] = {'n', 'b', 'i', 'f', 'r', 'd'};
-char *str_policies[] = {"Normal", "Batch", "Idle", "FIFO", "RR", "Deadline"};
-int policies[] = {SCHED_NORMAL, SCHED_BATCH, SCHED_IDLE, SCHED_FIFO, SCHED_RR, SCHED_DEADLINE};
+int num_policies = 5;
+char c_policies[] = {'n', 'b', 'i', 'f', 'r'};
+char *str_policies[] = {"Normal", "Batch", "Idle", "FIFO", "RR"};
+int policies[] = {SCHED_NORMAL, SCHED_BATCH, SCHED_IDLE,
+                  SCHED_FIFO, SCHED_RR};
 
 int main(int argc, char *argv[]) {
 
@@ -99,20 +98,21 @@ WorkLoad *get_work_load() {
 void *work(void *packet) {
     Packet *pkt = (Packet *)packet;
     long sum = 0;
+    // Starting time
+    struct timespec start = pkt->start;
+    // Time when finished
+    struct timespec end;
 
-    // Calculate time taken by a request
-    struct timespec requestStart, requestEnd;
-    clock_gettime(CLOCK_REALTIME, &requestStart);
-
+    // Do the actual work
     sum = sum + calculate_sum(pkt->index, pkt->length);
 
-    clock_gettime(CLOCK_REALTIME, &requestEnd);
-
+    // Get the time when finished
+    clock_gettime(CLOCK_REALTIME, &end);
     // Calculate time it took
-    double accum = ( requestEnd.tv_sec - requestStart.tv_sec )
-      + ( requestEnd.tv_nsec - requestStart.tv_nsec )
-      * ONE_OVER_BILLION;
-    printf( "%lf\n", accum );
+    double time_taken = (end.tv_sec - start.tv_sec)
+                        + (end.tv_nsec - start.tv_nsec)
+                        * ONE_OVER_BILLION;
+    printf("%lf\n", time_taken);
 }
 
 /**
@@ -150,6 +150,7 @@ void run_workers(WorkLoad *wl) {
     int num = wl->nworkers;
     long total_sum = 0;
 
+    // Allocate memoy for all packets
     Packet *pkt[num];
     for (int i = 0; i < num; i++) {
         pkt[i] = malloc(sizeof(Packet));
@@ -167,12 +168,16 @@ void run_workers(WorkLoad *wl) {
     for (i = 0; i < num-1; i++) {
         pkt[i]->index = i * len / num;
         pkt[i]->length = p_len;
+        // Set the starting time
+        clock_gettime(CLOCK_REALTIME, &pkt[i]->start);
         if (pthread_create(&threads[i], NULL, work, (void *)pkt[i]) != 0) {
             perror("Could not create thread");
         }
     }
+    // Run this thread instead of just waiting for the others
     pkt[i]->index = i * len / num;
     pkt[i]->length = p_len;
+    clock_gettime(CLOCK_REALTIME, &pkt[i]->start);
     work((void *)pkt[i]);
 
     total_sum += pkt[i]->result;
@@ -212,9 +217,6 @@ void print_schduler() {
         break;
         case SCHED_RR:
         schedlr_name = "RR";
-        break;
-        case SCHED_DEADLINE:
-        schedlr_name = "Deadline";
         break;
         default:
         schedlr_name = "Unknown";
@@ -288,6 +290,7 @@ void set_settings(WorkLoad *wl, int argc, char *argv[]) {
         }
     }
 
+    // Boundaries for the number of threads
     if (num_threads <= 100 && num_threads > 0) {
         threads_ok = 1;
     }

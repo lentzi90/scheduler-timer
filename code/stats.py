@@ -2,7 +2,10 @@
 stats.py
 
 Process the data produced by timer.sh by calculating the
-medians, max values and min values for each scheduler and thread count
+medians, max values and min values for each scheduler and thread count.
+Also collects the data about individual thread times, and produces similar
+statistics for them.
+Lastly, produces a set of plots describing the data.
 
 Author: Lennart Jern (ens16ljn@cs.umu.se)
 """
@@ -12,6 +15,9 @@ import re
 import matplotlib.pyplot as plt
 
 def total_stats():
+    """
+    Read the data from files and calculate statistical values and make plots.
+    """
     # The data file names are of the form data<thread count>.csv
     base = "../data/data"
     thread_base = "../data/threads"
@@ -43,22 +49,15 @@ def total_stats():
         thread_mn.loc[i] = thr_df.min()
 
         # Plot and save some nice figures
-        # Density curves for thread count 2, 4 and 8
-        if (i == 2):
+        # Density curves for thread count 2, 4, 6 and 8
+        if (i == 2 or i == 4 or i == 6 or i == 8):
             ax = thr_df.plot.kde()
+            ax.set_xlabel("Time (s)")
             fig = ax.get_figure()
-            fig.savefig('density2.pdf')
-
-        if (i == 4 or i == 8):
-            ax = thr_df[["Normal", "Idle", "FIFO"]].plot.kde(figsize=(6,4))
-            fig = ax.get_figure()
-            fig.savefig("density"+str(i)+"_nif.pdf")
-            ax2 = thr_df[["Batch", "RR"]].plot.kde(figsize=(6,4))
-            fig2 = ax2.get_figure()
-            fig2.savefig("density"+str(i)+"_br.pdf")
+            fig.savefig("density"+str(i)+".pdf")
 
         # Box plots for all thread counts
-        ax = thr_df.plot.box(figsize=(3.5,3.5))
+        ax = thr_df.plot.box(figsize=(4.5,3))
         ax.set_ylabel("Time (s)")
         fig = ax.get_figure()
         fig.savefig("box"+str(i)+".pdf")
@@ -125,5 +124,7 @@ def get_csv_name(threads):
     ext = ".csv"
     return base + str(threads) + ext
 
+# Collect thread timings
 thread_stats()
+# Get statistics and plots
 total_stats()

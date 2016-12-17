@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# timer.sh
+#
 # A timer script to measure the differences between schedulers/policies
 #
 # Author: Lennart Jern (ens16ljn@cs.umu.se)
@@ -35,5 +37,6 @@ do
     # Write data to a file
     echo "$DATA" > "../data/data$THREADS.csv"
     chown lennart ../data/threads*
+    chown lennart ../data/data*
 
 done

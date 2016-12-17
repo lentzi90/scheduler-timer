@@ -69,7 +69,7 @@ The work load consists of a simple program, called \texttt{work}, that sums over
 The source code for \texttt{work} can be found in listing \ref{work}.
 Since the task is easy to parallelize, only require minimal memory access and no disk access, it should be comparable to CPU intense tasks like compression and matrix calculations.
 
-\section{Implementation (Method?)}
+\section{Method}
 
 A Bash script (\texttt{timer.sh}, listing \ref{timer}) was used to time the complete task 10 times for each scheduler, for thread counts ranging from 1 to 10.
 See code listing \ref{timer} for the code.
@@ -91,7 +91,7 @@ All tests were run on my personal computer with the specifications seen in table
 		Component & Specification \\
 		\hline
 		OS: & Fedora 25 \\
-		Kernel: & Linux 4.8.12-300.fc25.x86\_64 \\
+		Kernel: & Linux 4.8.13-300.fc25.x86\_64 \\
 		CPU: & Intel Core i5-2500K CPU @ 3.7GHz \\
 		RAM: & 7965MiB \\
 		GCC: & 6.2.1 \\
@@ -108,35 +108,55 @@ All tests were run on my personal computer with the specifications seen in table
 
 \section{Results}
 
-For the total run time of the process, there does not seem to be much of a difference between the five schedulers.
+For the total run time of the process, there does not seem to be much of a difference between the five schedulers (see fig. \ref{median-total}).
 This is perhaps not too surprising considering that the system was practically idle, except for the work load process, so this process naturally got all resources the system could offer.
-
-
-% Necessary?
-%It is more interesting to compare the range of response times between the schedulers (fig. \ref{range}).
-%This reveals a clear difference between the real-time and normal schedulers, where the real-time ones are clearly more predictable for two or more threads.
-
-The raw data collected can be found in appendix \ref{raw}.
-
-
-
-
-\input{threads-median.tex}
-
-\input{threads-min-max.tex}
 
 \input{total-median.tex}
 
-% Necessary?
-%\input{range.tex}
+More interesting is the range (difference between maximum and minimum) of response times for the total run time of the process (fig. \ref{range}).
+This reveals a clear difference between the real-time and normal schedulers, where the real-time ones are clearly more predictable for two or more threads.
+
+\input{range.tex}
+
+The same trend can also be seen for the thread response times in fig. \ref{thread-range}.
+Furthermore, there is a small difference in median run time for the schedulers, when looking at the individual thread times, for a thread count between 6 and 8.
+This can be seen in fig. \ref{threads-medians}, where the Batch scheduler have a lower median time than the others.
+However, the difference seem to be somewhat periodic and vanishes almost completely with 9 threads.
+The Round Robin scheduler also follows this pattern but with a shorter period.
+With the exception of Batch, Round Robin beats the other schedulers for thread counts of 5, 6, 9 and 10.
+
+\input{thread-range.tex}
+\input{threads-median.tex}
+
+The differences are even clearer when looking at the box charts for the individual thread times in figures \ref{box1} and \ref{box2} where the range between the maximum and minimum run times can also be seen.
 
 \input{box.tex}
 
+To further analyze the behavior of the schedulers, we can take a look at the density plots for the thread times in figures \ref{density1} and \ref{density2}.
+There are only small differences when running with two threads.
+But with four threads instead, we can see that the Batch scheduler have two distinct ``batches'' while RR is much closer to have all threads finish in one lump.
+I am quite surprised to see the FIFO curve so flat and spread out at four threads, since they should all be able to run together and finish simultaneously.
+
 \input{density.tex}
+
+At six and eight threads, a pattern emerges where the Normal, Idle and FIFO schedulers finishes all their threads close together, while the Batch and RR schedulers both have two groups of threads finishing together.
+With a higher resolution we would probably se two peaks for FIFO also, a small bump is already visible in the plots for six and eight threads.
+
+The results for Round Robin follow the theory nicely, as it becomes more and more flat as the thread count increases (compare the figures for six and eight threads), since it tries to distribute the CPU time as evenly as possible.
+The Batch scheduler avoids switching between threads, and should thus get one batch of four and one of two threads finishing together when running with six threads total (since the processor has four cores).
+With eight threads, there should be two equal batches instead, and this is exactly what we can se in figures \ref{dens6} and \ref{dens8}.
+FIFO should in theory get two distinct peaks, but the resolution in the data does not seem to be high enough for this to appear.
 
 \section{Final thoughts and lessons learned}
 
-%\pagebreak
+It is quite clear that it is possible to spend a considerable amount of time just analyzing schedulers.
+The results are intriguing as they show clear differences in the behavior between the schedulers, and with several different tasks to compare, even more patterns would surely emerge.
+
+A lesson learned is that one should think carefully about when and where to start and stop the timers.
+If measuring just the whole task, this is quite easy, but for the individual threads it gets more tricky.
+The thread that starts the other threads must also start the timers since the working thread may not get to start immediately.
+Similarly, the working threads must stop their own timers, since there might be a pause between the threads finishing and actually getting joined.
+
 \clearpage
 \appendix
 
@@ -148,15 +168,15 @@ The raw data collected can be found in appendix \ref{raw}.
 
 \lstinputlisting[language=python, caption=stats.py, label=stats]{../code/stats.py}
 
-\lstinputlisting[caption=Makefile, label=make]{../code/Makefile}
+%\lstinputlisting[caption=Makefile, label=make]{../code/Makefile}
 
-\section{Raw data}\label{raw}
+%\section{Raw data}\label{raw}
 
-\csvautobooktabular{data/medians.csv}
+%\csvautobooktabular{data/medians.csv}
 
-\csvautobooktabular{data/max.csv}
+%\csvautobooktabular{data/max.csv}
 
-\csvautobooktabular{data/min.csv}
+%\csvautobooktabular{data/min.csv}
 
 %\csvautobooktabular{data/data1.csv}
 %\csvautobooktabular{data/data2.csv}
